@@ -5,7 +5,9 @@
 const int kPpmPin = 7;
 const int kDebugPin = 4;
 
-uint16_t channels[6];
+const int kChannelCount = 6;
+
+uint16_t channels[kChannelCount];
 int8_t current_channel = -2;
 bool data_ready = false;
 unsigned long t0 = 0;
@@ -33,7 +35,7 @@ void pinInterrupt() {
     } else if (current_channel != -2) {
       current_channel++;
 
-      if (current_channel == 6) {
+      if (current_channel == kChannelCount) {
         current_channel = -2;
         data_ready = true;
       }
@@ -62,15 +64,15 @@ Joystick_ joystick(
 
 const uint8_t kCalibrationSignature = 0xBA;
 
-uint16_t calibMin[6];
-uint16_t calibMax[6];
+uint16_t calibMin[kChannelCount];
+uint16_t calibMax[kChannelCount];
 
 bool calibrated = false;
 
 bool readCalibration() {
   bool calibrated = EEPROM.read(0) == kCalibrationSignature;
 
-  for (int i=0; i < 6; ++i) {
+  for (int i=0; i < kChannelCount; ++i) {
     if (calibrated) {
       calibMin[i] = 
         (((uint16_t)EEPROM.read(i*4 + 1)) << 8) + EEPROM.read(i * 4 + 2);
@@ -94,7 +96,7 @@ bool readCalibration() {
 }
 
 void saveCalibration() {
-  for (int i=0; i < 6; ++i) {
+  for (int i=0; i < kChannelCount; ++i) {
     EEPROM.write(i*4 + 1, (calibMin[i] >> 8) & 0xFF);
     EEPROM.write(i*4 + 2, calibMin[i] & 0xFF);
     EEPROM.write(i*4 + 3, (calibMax[i] >> 8) & 0xFF);
@@ -133,7 +135,7 @@ void loop() {
       bool all_good = true;
 
       Serial.print(millis()); 
-      for (uint8_t i=0; i < 6; ++i) {
+      for (uint8_t i=0; i < kChannelCount; ++i) {
         if (channels[i] < calibMin[i]) {
           calibMin[i] = channels[i];
         }
